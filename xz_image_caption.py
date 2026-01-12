@@ -1,7 +1,6 @@
 import base64
 import io
 import json
-import random
 import urllib.error
 import urllib.request
 
@@ -17,12 +16,13 @@ class XZImageCaption:
         return {
             "required": {
                 "image": ("IMAGE",),
-                "seed": ("INT", {"default": 0, "min": 0, "max": MAX_SEED}),
-                "control_after_generate": (
-                    "STRING",
+                "seed": (
+                    "INT",
                     {
-                        "default": "fixed",
-                        "options": ["fixed", "increment", "decrement", "randomize"],
+                        "default": 0,
+                        "min": 0,
+                        "max": MAX_SEED,
+                        "control_after_generate": True,
                     },
                 ),
                 "base_url": ("STRING", {"default": "https://api.openai.com/v1"}),
@@ -37,7 +37,7 @@ class XZImageCaption:
     FUNCTION = "run"
     CATEGORY = "XZ/AI"
 
-    def run(self, image, seed, control_after_generate, base_url, api_key, model_id, prompt):
+    def run(self, image, seed, base_url, api_key, model_id, prompt):
         if not api_key:
             raise ValueError("api_key is required.")
         if not model_id:
@@ -47,13 +47,13 @@ class XZImageCaption:
 
         endpoint = base_url.rstrip("/") + "/chat/completions"
         captions = []
-        current_seed = int(seed)
+        seed_value = int(seed)
 
         for img in image:
             data_url = self._image_to_data_url(img)
             payload = {
                 "model": model_id,
-                "seed": current_seed,
+                "seed": seed_value,
                 "messages": [
                     {
                         "role": "user",
@@ -89,7 +89,6 @@ class XZImageCaption:
 
             data = json.loads(response_body)
             captions.append(self._extract_content(data))
-            current_seed = self._next_seed(current_seed, control_after_generate)
 
         if len(captions) == 1:
             return (captions[0],)
@@ -115,13 +114,3 @@ class XZImageCaption:
         if content is None:
             raise RuntimeError(f"OpenAI response missing message content: {data}")
         return content
-
-    @staticmethod
-    def _next_seed(seed, control_after_generate):
-        if control_after_generate == "increment":
-            return seed + 1 if seed < MAX_SEED else MAX_SEED
-        if control_after_generate == "decrement":
-            return seed - 1 if seed > 0 else 0
-        if control_after_generate == "randomize":
-            return random.randint(0, MAX_SEED)
-        return seed
