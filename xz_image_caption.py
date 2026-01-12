@@ -28,22 +28,26 @@ class XZImageCaption:
                 "base_url": ("STRING", {"default": "https://api.openai.com/v1"}),
                 "api_key": ("STRING", {"default": "", "multiline": False}),
                 "model_id": ("STRING", {"default": "gpt-4o-mini"}),
-                "prompt": ("STRING", {"default": "Describe the image.", "multiline": True}),
+                "system_prompt": (
+                    "STRING",
+                    {"default": "You are a helpful image captioning assistant.", "multiline": True},
+                ),
+                "user_prompt": ("STRING", {"default": "Describe the image.", "multiline": True}),
             }
         }
 
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("caption",)
     FUNCTION = "run"
-    CATEGORY = "XZ/AI"
+    CATEGORY = "xzinfra/api"
 
-    def run(self, image, seed, base_url, api_key, model_id, prompt):
+    def run(self, image, seed, base_url, api_key, model_id, system_prompt, user_prompt):
         if not api_key:
             raise ValueError("api_key is required.")
         if not model_id:
             raise ValueError("model_id is required.")
-        if not prompt:
-            raise ValueError("prompt is required.")
+        if not user_prompt:
+            raise ValueError("user_prompt is required.")
 
         endpoint = base_url.rstrip("/") + "/chat/completions"
         captions = []
@@ -51,18 +55,22 @@ class XZImageCaption:
 
         for img in image:
             data_url = self._image_to_data_url(img)
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_prompt},
+                        {"type": "image_url", "image_url": {"url": data_url}},
+                    ],
+                }
+            )
             payload = {
                 "model": model_id,
                 "seed": seed_value,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {"type": "image_url", "image_url": {"url": data_url}},
-                        ],
-                    }
-                ],
+                "messages": messages,
             }
             headers = {
                 "Authorization": f"Bearer {api_key}",
