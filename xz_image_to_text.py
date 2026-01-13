@@ -10,7 +10,7 @@ import torch
 MAX_SEED = 0xFFFFFFFFFFFFFFFF
 
 
-class XZImageCaption:
+class XZImageToText:
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -30,9 +30,15 @@ class XZImageCaption:
                 "model_id": ("STRING", {"default": "gpt-4o-mini"}),
                 "system_prompt": (
                     "STRING",
-                    {"default": "You are a helpful image captioning assistant.", "multiline": True},
+                    {
+                        "default": "You are a helpful image captioning assistant.",
+                        "multiline": True,
+                    },
                 ),
-                "user_prompt": ("STRING", {"default": "Describe the image.", "multiline": True}),
+                "user_prompt": (
+                    "STRING",
+                    {"default": "Describe the image.", "multiline": True},
+                ),
             }
         }
 

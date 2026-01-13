@@ -1,9 +1,9 @@
-from .nodes import XZImageCaption
+from .nodes import XZImageToText
 
 NODE_CLASS_MAPPINGS = {
-    "XZImageCaption": XZImageCaption,
+    "XZImageToText": XZImageToText,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "XZImageCaption": "XZ Image Caption",
+    "XZImageToText": "XZ Image To Text",
 }

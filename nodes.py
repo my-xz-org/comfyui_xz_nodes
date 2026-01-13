@@ -1,3 +1,3 @@
-from .xz_image_caption import XZImageCaption
+from .xz_image_to_text import XZImageToText
 
-__all__ = ["XZImageCaption"]
+__all__ = ["XZImageToText"]
