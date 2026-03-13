@@ -28,6 +28,22 @@ class XZImageToText:
                 "base_url": ("STRING", {"default": "https://api.openai.com/v1"}),
                 "api_key": ("STRING", {"default": "", "multiline": False}),
                 "model_id": ("STRING", {"default": "gpt-4o-mini"}),
+                "temperature": (
+                    "FLOAT",
+                    {"default": 1.0, "min": 0.0, "max": 2.0, "step": 0.01},
+                ),
+                "top_p": (
+                    "FLOAT",
+                    {"default": 0.95, "min": 0.0, "max": 1.0, "step": 0.01},
+                ),
+                "max_tokens": (
+                    "INT",
+                    {"default": 10240, "min": 1, "max": 262144, "step": 1},
+                ),
+                "presence_penalty": (
+                    "FLOAT",
+                    {"default": 1.5, "min": -2.0, "max": 2.0, "step": 0.1},
+                ),
                 "system_prompt": (
                     "STRING",
                     {
@@ -39,7 +55,21 @@ class XZImageToText:
                     "STRING",
                     {"default": "Describe the image.", "multiline": True},
                 ),
-            }
+            },
+            "optional": {
+                "top_k": (
+                    "INT",
+                    {"default": 20, "min": 0, "max": 4096, "step": 1},
+                ),
+                "min_p": (
+                    "FLOAT",
+                    {"default": 0.0, "min": 0.0, "max": 1.0, "step": 0.01},
+                ),
+                "repetition_penalty": (
+                    "FLOAT",
+                    {"default": 1.0, "min": 0.0, "max": 2.0, "step": 0.1},
+                ),
+            },
         }
 
     RETURN_TYPES = ("STRING",)
@@ -47,7 +77,23 @@ class XZImageToText:
     FUNCTION = "run"
     CATEGORY = "xzinfra/api"
 
-    def run(self, image, seed, base_url, api_key, model_id, system_prompt, user_prompt):
+    def run(
+        self,
+        image,
+        seed,
+        base_url,
+        api_key,
+        model_id,
+        temperature,
+        top_p,
+        max_tokens,
+        presence_penalty,
+        system_prompt,
+        user_prompt,
+        top_k=None,
+        min_p=None,
+        repetition_penalty=None,
+    ):
         if not api_key:
             raise ValueError("api_key is required.")
         if not model_id:
@@ -76,8 +122,18 @@ class XZImageToText:
             payload = {
                 "model": model_id,
                 "seed": seed_value,
+                "temperature": float(temperature),
+                "top_p": float(top_p),
+                "max_tokens": int(max_tokens),
+                "presence_penalty": float(presence_penalty),
                 "messages": messages,
             }
+            if top_k is not None:
+                payload["top_k"] = int(top_k)
+            if min_p is not None:
+                payload["min_p"] = float(min_p)
+            if repetition_penalty is not None:
+                payload["repetition_penalty"] = float(repetition_penalty)
             headers = {
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
